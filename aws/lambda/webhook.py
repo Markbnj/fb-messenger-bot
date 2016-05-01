@@ -25,12 +25,12 @@ def handler(event, context):
     Called for all requests against the attached API gateway
     endpoint.
     """
-    logger.debug("Entering handler")
+    logger.debug("Entering webhook handler")
     my_access_token = tokens.get("accessToken")
     access_token = event.get("accessToken")
     if access_token != my_access_token:
         logger.debug("Access token check failed")
-        return "401 Unauthorized; bad access token"
+        return "403 Forbidden; bad access token"
     else:
         return handlers.dispatch(event, context, tokens)
 
