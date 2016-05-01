@@ -7,6 +7,6 @@
 
 .package:
 	rm -f aws/lambda/lambda.zip
-	cd aws/lambda && zip --quiet -r lambda.zip .
+	cd aws/lambda && zip --quiet -r lambda.zip . -x \*.pyc -x libs/nose\*/\* -x \*.example
 
 lambda: .package .test
