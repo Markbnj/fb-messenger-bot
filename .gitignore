@@ -4,3 +4,4 @@ aws/lambda/lambda.zip
 aws/lambda/libs/*
 !aws/lambda/libs/requirements.txt
 !aws/lambda/libs/update-reqs
+aws/api-gateway/config/endpoint.json
