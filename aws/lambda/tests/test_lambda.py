@@ -42,40 +42,38 @@ class TestVerify(TestVerifyBase):
 class TestVerifyBadAccessToken(TestVerifyBase):
     """
     Tests a call to the webhook.handler for verification with an incorrect
-    access token. Should return a string beginning with "403".
+    access token. Should raise an exception with "403" in the error.
+    message.
     """
     def test(self):
         from webhook import handler
         event = self.test_event.copy()
         event["accessToken"] = "yadayada"
-        result = handler(event, None)
-        self.assertTrue(result.startswith("403"))
+        self.assertRaises(Exception, handler, event, None)
 
 
 class TestVerifyMissingAccessToken(TestVerifyBase):
     """
     Tests a call to the webhook.handler for verification with a missing
-    access token. Should return a string beginning with "403".
+    access token. Should raise an exception with "403" in the error.
     """
     def test(self):
         from webhook import handler
         event = self.test_event.copy()
         del event["accessToken"]
-        result = handler(event, None)
-        self.assertTrue(result.startswith("403"))
+        self.assertRaises(Exception, handler, event, None)
 
 
 class TestVerifyMissingChallenge(TestVerifyBase):
     """
     Tests a call to the webhook.handler for verification with a missing
-    access token. Should return a string beginning with "400".
+    access token. Should raise an exception with "400" in the error.
     """
     def test(self):
         from webhook import handler
         event = self.test_event.copy()
         del event["query"]["hub.challenge"]
-        result = handler(event, None)
-        self.assertTrue(result.startswith("400"))
+        self.assertRaises(Exception, handler, event, None)
 
 
 class TestReceiveMessageBase(unittest.TestCase):
