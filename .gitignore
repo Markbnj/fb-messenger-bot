@@ -1,0 +1,6 @@
+*.pyc
+aws/lambda/config/tokens.json
+aws/lambda/lambda.zip
+aws/lambda/libs/*
+!aws/lambda/libs/requirements.txt
+!aws/lambda/libs/update-reqs
