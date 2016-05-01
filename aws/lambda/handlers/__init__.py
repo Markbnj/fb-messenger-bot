@@ -7,6 +7,10 @@ logger = logging.getLogger()
 
 
 def dispatch(event, context, tokens):
+    """
+    Receives all events from the webhook entrypoint and figures out which
+    handler method to call.
+    """
     method = event.get("method")
     if method == "GET":
         logger.debug("GET method received; event={}".format(event))
@@ -15,4 +19,4 @@ def dispatch(event, context, tokens):
         logger.debug("POST method received; event={}".format(event))
         return message_handler.receive(event, context, tokens)
     else:
-        return "400 Bad Request; unhandled method {}".format(method)
+        raise Exception("400 Bad Request; unhandled method {}".format(method))
