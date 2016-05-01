@@ -49,7 +49,7 @@ class TestVerifyBadAccessToken(TestVerifyBase):
         event = self.test_event.copy()
         event["accessToken"] = "yadayada"
         result = handler(event, None)
-        self.assertTrue(result.startswith("401"))
+        self.assertTrue(result.startswith("403"))
 
 
 class TestVerifyMissingAccessToken(TestVerifyBase):
@@ -62,7 +62,7 @@ class TestVerifyMissingAccessToken(TestVerifyBase):
         event = self.test_event.copy()
         del event["accessToken"]
         result = handler(event, None)
-        self.assertTrue(result.startswith("401"))
+        self.assertTrue(result.startswith("403"))
 
 
 class TestVerifyMissingChallenge(TestVerifyBase):
