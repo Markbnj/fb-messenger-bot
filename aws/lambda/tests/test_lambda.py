@@ -9,6 +9,9 @@ import unittest
 sys.path.insert(1, os.path.join(sys.path[0], ".."))
 
 
+from webhook import handler
+
+
 class TestBase(unittest.TestCase):
     """
     Provides a test event for use by the individual test cases
@@ -52,7 +55,6 @@ class TestVerify(TestVerifyBase):
     Tests a call to the webhook.handler for verification with good data.
     """
     def test(self):
-        from webhook import handler
         result = handler(self.test_event, None)
         self.assertEqual(result, self.test_event["query"]["hub.challenge"])
 
@@ -64,7 +66,6 @@ class TestVerifyBadAccessToken(TestVerifyBase):
     message.
     """
     def test(self):
-        from webhook import handler
         event = self.test_event.copy()
         event["accessToken"] = "yadayada"
         self.assertRaises(Exception, handler, event, None)
@@ -73,12 +74,33 @@ class TestVerifyBadAccessToken(TestVerifyBase):
 class TestVerifyMissingAccessToken(TestVerifyBase):
     """
     Tests a call to the webhook.handler for verification with a missing
-    access token. Should raise an exception with "403" in the error.
+    access token. Should raise an exception with "400" in the error.
     """
     def test(self):
-        from webhook import handler
         event = self.test_event.copy()
         del event["accessToken"]
+        self.assertRaises(Exception, handler, event, None)
+
+
+class TestVerifyBadVerificationToken(TestVerifyBase):
+    """
+    Tests a call to the webhook.handler for verification with a bad
+    verification token. Should raise an exception with "403" in the error.
+    """
+    def test(self):
+        event = self.test_event.copy()
+        event["query"]["hub.verify_token"] = "bad-verify-token"
+        self.assertRaises(Exception, handler, event, None)
+
+
+class TestVerifyMissingVerificationToken(TestVerifyBase):
+    """
+    Tests a call to the webhook.handler for verification with a missing
+    verification token. Should raise an exception with "400" in the error.
+    """
+    def test(self):
+        event = self.test_event.copy()
+        del event["query"]["hub.verify_token"]
         self.assertRaises(Exception, handler, event, None)
 
 
@@ -88,7 +110,6 @@ class TestVerifyMissingChallenge(TestVerifyBase):
     access token. Should raise an exception with "400" in the error.
     """
     def test(self):
-        from webhook import handler
         event = self.test_event.copy()
         del event["query"]["hub.challenge"]
         self.assertRaises(Exception, handler, event, None)

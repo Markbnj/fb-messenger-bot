@@ -41,20 +41,54 @@ class TestVerify(TestBase):
 class TestVerifyBadAccessToken(TestBase):
     """
     Tests a call to the webhook.handler for verification with an incorrect
-    access token. Should raise an exception with "403" in the error.
+    access token. Should return http 403 and "403" in the error.
     message.
     """
     def test(self):
-        pass
+        challenge = "abcdefgh"
+        url = self.make_url("bad-access-token", self.tokens.get("verifyToken"), challenge)
+        response = requests.get(url)
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(response.text.startswith("403"))
 
 
 class TestVerifyMissingAccessToken(TestBase):
     """
     Tests a call to the webhook.handler for verification with a missing
-    access token. Should raise an exception with "403" in the error.
+    access token. Should return http 400 and "400" in the error.
     """
     def test(self):
-        pass
+        challenge = "abcdefgh"
+        url = self.make_url("", self.tokens.get("verifyToken"), challenge)
+        response = requests.get(url)
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(response.text.startswith("400"))
+
+
+class TestVerifyBadVerificationToken(TestBase):
+    """
+    Tests a call to the webhook.handler for verification with a bad
+    verification token. Should return http 403 with "403" in the error.
+    """
+    def test(self):
+        challenge = "abcdefgh"
+        url = self.make_url(self.tokens.get("accessToken"), "bad-verify-token", challenge)
+        response = requests.get(url)
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(response.text.startswith("403"))
+
+
+class TestVerifyMissingVerificationToken(TestBase):
+    """
+    Tests a call to the webhook.handler for verification with a missing
+    verification token. Should return http 400 with "400" in the error.
+    """
+    def test(self):
+        challenge = "abcdefgh"
+        url = self.make_url(self.tokens.get("accessToken"), "", challenge)
+        response = requests.get(url)
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(response.text.startswith("400"))
 
 
 class TestVerifyMissingChallenge(TestBase):
@@ -63,7 +97,11 @@ class TestVerifyMissingChallenge(TestBase):
     access token. Should raise an exception with "400" in the error.
     """
     def test(self):
-        pass
+        challenge = ""
+        url = self.make_url(self.tokens.get("accessToken"), self.tokens.get("verifyToken"), challenge)
+        response = requests.get(url)
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(response.text.startswith("400"))
 
 
 class TestReceiveMessage(TestBase):
