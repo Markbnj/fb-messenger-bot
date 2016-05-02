@@ -42,6 +42,9 @@ def handler(event, context):
     logger.debug("Entering webhook handler")
     my_access_token = tokens.get("accessToken")
     access_token = event.get("accessToken")
+    if not access_token:
+        logger.debug("Missing access token")
+        raise Exception("400 Bad Request; missing access token")
     if access_token != my_access_token:
         logger.debug("Access token check failed")
         raise Exception("403 Forbidden; bad access token")
