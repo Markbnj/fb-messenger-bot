@@ -19,8 +19,12 @@ def verify(event, context, tokens):
     """
     my_verify_token = tokens.get("verifyToken")
     verify_token = event['query'].get("hub.verify_token")
-    challenge = event['query'].get("hub.challenge")
+    if not verify_token:
+        logger.debug("Missing verification token")
+        raise Exception("400 Bad Request; missing verification token")
+
     if verify_token == my_verify_token:
+        challenge = event['query'].get("hub.challenge")
         if not challenge:
             raise Exception("400 Bad Request; missing challenge")
         else:
