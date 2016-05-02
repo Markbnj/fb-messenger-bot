@@ -3,30 +3,48 @@ import os
 import sys
 import unittest
 
+
 # Needed so we can import the handler from the webhook mod in the
 # parent directory
 sys.path.insert(1, os.path.join(sys.path[0], ".."))
 
-class TestVerifyBase(unittest.TestCase):
+
+class TestBase(unittest.TestCase):
     """
     Provides a test event for use by the individual test cases
     """
     def setUp(self):
+        # Read the tokens from the lambda config, tokens.json
+        self.tokens = None
+        with open("../config/tokens.json") as f:
+            self.tokens = json.loads(f.read())
+
+        # set up the test event
         self.test_event = json.loads("""
         {
-            "accessToken": "DAgBCwEODQcGCAEHBA8LDk",
-            "method": "GET",
+            "accessToken": "",
+            "method": "",
             "body": {},
             "headers": {},
             "params": {},
             "query": {
-                "access_token": "DAgBCwEODQcGCAEHBA8LDk",
-                "hub.verify_token": "CAEDCgAEAAMJBwsNBAkOBg",
-                "hub.challenge": "abcdefghijk"
+                "access_token": "",
+                "hub.verify_token": "",
+                "hub.challenge": ""
             }
         }
         """
         )
+        self.test_event['accessToken'] = self.tokens.get("accessToken")
+        self.test_event['query']['access_token'] = self.tokens.get("accessToken")
+
+
+class TestVerifyBase(TestBase):
+    def setUp(self):
+        super(TestVerifyBase, self).setUp()
+        self.test_event['method'] = "GET"
+        self.test_event['query']['hub.verify_token'] = self.tokens.get("verifyToken")
+        self.test_event['query']['hub.challenge'] = "abcdefgh"
 
 
 class TestVerify(TestVerifyBase):
@@ -76,24 +94,11 @@ class TestVerifyMissingChallenge(TestVerifyBase):
         self.assertRaises(Exception, handler, event, None)
 
 
-class TestReceiveMessageBase(unittest.TestCase):
-    """
-    Provides a test event for use by the individual test cases
-    """
+class TestReceiveMessageBase(TestBase):
     def setUp(self):
-        self.test_event = json.loads("""
-        {
-            "accessToken": "DAgBCwEODQcGCAEHBA8LDk",
-            "method": "POST",
-            "body": {},
-            "headers": {},
-            "params": {},
-            "query": {
-                "access_token": "DAgBCwEODQcGCAEHBA8LDk"
-            }
-        }
-        """
-        )
+        super(TestReceiveMessageBase, self).setUp()
+        self.test_event['method'] = "POST"
+        # TBD any other message properties here
 
 
 class TestReceiveMessage(TestReceiveMessageBase):
