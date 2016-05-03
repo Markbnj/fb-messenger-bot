@@ -39,7 +39,7 @@ def handler(event, context):
     endpoint. Expects the request data to be mapped to a json event
     record as defined by aws/api-gateway/request-mapping.json.
     """
-    logger.debug("Entering webhook handler")
+    logger.debug("AWS request context: {}".format(context))
     my_access_token = tokens.get("accessToken")
     access_token = event.get("accessToken")
     if not access_token:
@@ -49,5 +49,5 @@ def handler(event, context):
         logger.debug("Access token check failed")
         raise Exception("403 Forbidden; bad access token")
     else:
-        return handlers.dispatch(event, context, tokens)
+        return handlers.dispatch(event, tokens)
 

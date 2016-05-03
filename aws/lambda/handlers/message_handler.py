@@ -4,5 +4,5 @@ import logging
 logger = logging.getLogger()
 
 
-def receive(event, context, tokens):
+def receive(event, tokens):
     pass
