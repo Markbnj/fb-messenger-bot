@@ -115,47 +115,103 @@ class TestVerifyMissingChallenge(TestVerifyBase):
         self.assertRaises(Exception, handler, event, None)
 
 
-class TestReceiveMessageBase(TestBase):
+class TestPostbacksBase(TestBase):
     def setUp(self):
-        super(TestReceiveMessageBase, self).setUp()
+        super(TestPostbacksBase, self).setUp()
         self.test_event['method'] = "POST"
-        # TBD any other message properties here
+        self.test_event['body'] = json.loads("""
+            {
+                "object": "page",
+                "entry": []
+            }
+        """)
+
+    def make_message(self, sender_id, rec_id, timestamp):
+        message = json.loads("""
+            {
+                "sender":{
+                    "id":""
+                },
+                "recipient":{
+                    "id":""
+                },
+                "timestamp":0
+            }
+        """)
+        message["sender"]["id"] = sender_id
+        message["recipient"]["id"] = rec_id
+        message["timestamp"] = timestamp
+        return message
+
+    def make_entry(self, page_id, time, messages=[]):
+        entry = json.loads("""
+            {
+                "id":"",
+                "time":"",
+                "messaging":[]
+            }
+        """)
+        entry["id"] = page_id
+        entry["time"] = time
+        entry["messaging"] = messages
+        return entry
 
 
-class TestReceiveMessage(TestReceiveMessageBase):
+# receive message with missing entry
+# receive message with missing message
+# missing data in the message
+
+class TestAuthCallback(TestPostbacksBase):
+    """
+    Tests a call to the webhook.handler with an auth event. Should
+    return nothing.
+    """
+    def test(self):
+        event = self.test_event.copy()
+        event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
+        event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
+        event["body"]["entry"][0]["messaging"][0]["optin"] = {"ref": "SOME POSTBACK DATA HERE"}
+        handler(event, None)
+
+
+class TestReceiveMessage(TestPostbacksBase):
     """
     Tests a call to the webhook.handler with a message event. Should
     return nothing.
     """
     def test(self):
-        pass
+        event = self.test_event.copy()
+        event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
+        event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
+        event["body"]["entry"][0]["messaging"][0]["message"] = {"mid":"mid.1461992777559:e8027b338d2b553b73", "seq":75}
+        event["body"]["entry"][0]["messaging"][0]["message"]["text"] = "This is a test message."
+        handler(event, None)
 
 
-class TestReceiveMessageBadAccessToken(TestReceiveMessageBase):
+class TestMessageDelivered(TestPostbacksBase):
     """
-    Tests a call to the webhook.handler with a message event that has
-    a bad access token. Should return a string beginning with "403".
-    """
-    def test(self):
-        pass
-
-
-class TestReceiveMessageMissingAccessToken(TestReceiveMessageBase):
-    """
-    Tests a call to the webhook.handler with a message event that has
-    a missing access token. Should return a string beginning with "403".
+    Tests a call to the webhook.handler with a message delivered event.
+    Should return nothing.
     """
     def test(self):
-        pass
+        event = self.test_event.copy()
+        event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
+        event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
+        event["body"]["entry"][0]["messaging"][0]["delivery"] = {"mids":["mid.1461992777559:e8027b338d2b553b73"], "watermark":1234567890, "seq":75}
+        handler(event, None)
 
 
-class TestReceiveMessageBadJson(TestReceiveMessageBase):
+class TestUserPostback(TestPostbacksBase):
     """
-    Tests a call to the webhook.handler with a message event that has
-    a missing access token. Should return a string beginning with "400".
+    Tests a call to the webhook.handler with a user postback event.
+    Should return nothing.
     """
     def test(self):
-        pass
+        event = self.test_event.copy()
+        event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
+        event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
+        event["body"]["entry"][0]["messaging"][0]["postback"] = {"payload": "SOME POSTBACK DATA HERE"}
+        handler(event, None)
 
 
 if __name__ == "__main__":
