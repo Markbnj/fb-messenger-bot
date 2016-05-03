@@ -18,7 +18,7 @@ def dispatch_callback(event, tokens):
     Recieves a callback event and walks the entry and messaging lists
     passing the data to the proper handlers.
     """
-    entries = event.get("entry")
+    entries = event["body"].get("entry")
     try:
         for entry in entries:
             page_id = entry.get("id")
