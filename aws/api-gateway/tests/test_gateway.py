@@ -113,32 +113,6 @@ class TestReceiveMessage(TestBase):
         pass
 
 
-class TestReceiveMessageBadAccessToken(TestBase):
-    """
-    Tests a call to the webhook.handler with a message event that has
-    a bad access token. Should return a string beginning with "403".
-    """
-    def test(self):
-        pass
-
-
-class TestReceiveMessageMissingAccessToken(TestBase):
-    """
-    Tests a call to the webhook.handler with a message event that has
-    a missing access token. Should return a string beginning with "403".
-    """
-    def test(self):
-        pass
-
-
-class TestReceiveMessageBadJson(TestBase):
-    """
-    Tests a call to the webhook.handler with a message event that has
-    a missing access token. Should return a string beginning with "400".
-    """
-    def test(self):
-        pass
-
 
 if __name__ == "__main__":
     unittest.main()
