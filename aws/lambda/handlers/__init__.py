@@ -7,11 +7,6 @@ import postback_handler
 
 logger = logging.getLogger()
 
-# (message received) $.entry[i].messaging[i].message
-# (message delivered) $.entry[i].messaging[i].delivery
-# (authentication) $.entry[i].messaging[i].optin
-# (postback) $.entry[i].messaging[i].postback
-
 
 def dispatch_callback(event, tokens):
     """
