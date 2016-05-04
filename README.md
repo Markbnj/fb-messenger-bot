@@ -4,8 +4,6 @@
 
 #### Roadmap
 
-  - Complete test cases for message receipt and auth postbacks
-  - Implement message receiver and sender classes in handlers
   - Implement interface to DynamoDB or another store for sessions
   - Implement interface to wit.ai at pluggable abstraction level
   - Create swagger definition of API gateway setup
