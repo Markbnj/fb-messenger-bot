@@ -8,7 +8,7 @@ import postback_handler
 logger = logging.getLogger()
 
 
-def dispatch_callback(event, tokens):
+def dispatch_callback(event, settings):
     """
     Recieves a callback event and walks the entry and messaging lists
     passing the data to the proper handlers.
@@ -21,13 +21,13 @@ def dispatch_callback(event, tokens):
             messages = entry.get("messaging")
             for message in messages:
                 if "optin" in message:
-                    return auth_handler.auth(page_id, time, message, tokens)
+                    return auth_handler.auth(page_id, time, message, settings)
                 elif "message" in message:
-                    return message_handler.received(page_id, time, message, tokens)
+                    return message_handler.received(page_id, time, message, settings)
                 elif "delivery" in message:
-                    return message_handler.delivered(page_id, time, message, tokens)
+                    return message_handler.delivered(page_id, time, message, settings)
                 elif "postback" in message:
-                    return postback_handler.postback(page_id, time, message, tokens)
+                    return postback_handler.postback(page_id, time, message, settings)
                 else:
                     logger.warning("Cannot process message: {}".format(message))
     except:
@@ -36,7 +36,7 @@ def dispatch_callback(event, tokens):
 
 
 
-def dispatch(event, tokens):
+def dispatch(event, settings):
     """
     Receives all events from the webhook entrypoint and figures out which
     handler method to call.
@@ -44,9 +44,9 @@ def dispatch(event, tokens):
     method = event.get("method")
     if method == "GET":
         logger.debug("GET method received; event={}".format(event))
-        return verification_handler.verify(event['query'], tokens)
+        return verification_handler.verify(event['query'], settings)
     elif method == "POST":
         logger.debug("POST method received; event={}".format(event))
-        return dispatch_callback(event, tokens)
+        return dispatch_callback(event, settings)
     else:
         raise Exception("400 Bad Request; unhandled method {}".format(method))

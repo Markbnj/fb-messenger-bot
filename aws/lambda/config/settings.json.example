@@ -1,0 +1,6 @@
+{
+    "accessToken": "ACCESS TOKEN HERE",
+    "verifyToken": "VERIFY TOKEN HERE",
+    "pageToken": "FACEBOOK PAGE TOKEN HERE",
+    "graphUrl": "https://graph.facebook.com/v2.6/me/messages?access_token={}"
+}

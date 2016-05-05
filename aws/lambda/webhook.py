@@ -27,10 +27,10 @@ sys.path.insert(0, current_dir)
 """
 Read in the three secrets from config/tokens.json.
 """
-tokens = None
+settings = None
 config_path = os.path.join(current_dir, "config")
-with open("{}/tokens.json".format(config_path), "rb") as f:
-    tokens = json.loads(f.read())
+with open("{}/settings.json".format(config_path), "rb") as f:
+    settings = json.loads(f.read())
 
 
 def handler(event, context):
@@ -40,7 +40,7 @@ def handler(event, context):
     record as defined by aws/api-gateway/request-mapping.json.
     """
     logger.debug("AWS request context: {}".format(context))
-    my_access_token = tokens.get("accessToken")
+    my_access_token = settings.get("accessToken")
     access_token = event.get("accessToken")
     if not access_token:
         logger.debug("Missing access token")
@@ -49,5 +49,5 @@ def handler(event, context):
         logger.debug("Access token check failed")
         raise Exception("403 Forbidden; bad access token")
     else:
-        return handlers.dispatch(event, tokens)
+        return handlers.dispatch(event, settings)
 

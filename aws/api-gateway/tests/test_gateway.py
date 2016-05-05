@@ -15,10 +15,10 @@ class TestBase(unittest.TestCase):
         with open("../config/endpoint.json", "rb") as f:
             self.endpoint = json.loads(f.read()).get("endpoint")
 
-        # Read the tokens from the lambda config, tokens.json
-        self.tokens = None
-        with open("../../lambda/config/tokens.json") as f:
-            self.tokens = json.loads(f.read())
+        # Read the settings from the lambda config, settings.json
+        self.settings = None
+        with open("../../lambda/config/settings.json") as f:
+            self.settings = json.loads(f.read())
 
     def make_url(self, access_token, verify_token=None, challenge=None):
         url = "{}?access_token={}".format(self.endpoint, access_token)
@@ -33,7 +33,7 @@ class TestVerify(TestBase):
     """
     def test(self):
         challenge = "abcdefgh"
-        url = self.make_url(self.tokens.get("accessToken"), self.tokens.get("verifyToken"), challenge)
+        url = self.make_url(self.settings.get("accessToken"), self.settings.get("verifyToken"), challenge)
         response = requests.get(url)
         self.assertEqual(response.text, challenge)
 
@@ -46,7 +46,7 @@ class TestVerifyBadAccessToken(TestBase):
     """
     def test(self):
         challenge = "abcdefgh"
-        url = self.make_url("bad-access-token", self.tokens.get("verifyToken"), challenge)
+        url = self.make_url("bad-access-token", self.settings.get("verifyToken"), challenge)
         response = requests.get(url)
         self.assertEqual(response.status_code, 403)
         self.assertTrue(response.text.startswith("403"))
@@ -59,7 +59,7 @@ class TestVerifyMissingAccessToken(TestBase):
     """
     def test(self):
         challenge = "abcdefgh"
-        url = self.make_url("", self.tokens.get("verifyToken"), challenge)
+        url = self.make_url("", self.settings.get("verifyToken"), challenge)
         response = requests.get(url)
         self.assertEqual(response.status_code, 400)
         self.assertTrue(response.text.startswith("400"))
@@ -72,7 +72,7 @@ class TestVerifyBadVerificationToken(TestBase):
     """
     def test(self):
         challenge = "abcdefgh"
-        url = self.make_url(self.tokens.get("accessToken"), "bad-verify-token", challenge)
+        url = self.make_url(self.settings.get("accessToken"), "bad-verify-token", challenge)
         response = requests.get(url)
         self.assertEqual(response.status_code, 403)
         self.assertTrue(response.text.startswith("403"))
@@ -85,7 +85,7 @@ class TestVerifyMissingVerificationToken(TestBase):
     """
     def test(self):
         challenge = "abcdefgh"
-        url = self.make_url(self.tokens.get("accessToken"), "", challenge)
+        url = self.make_url(self.settings.get("accessToken"), "", challenge)
         response = requests.get(url)
         self.assertEqual(response.status_code, 400)
         self.assertTrue(response.text.startswith("400"))
@@ -98,7 +98,7 @@ class TestVerifyMissingChallenge(TestBase):
     """
     def test(self):
         challenge = ""
-        url = self.make_url(self.tokens.get("accessToken"), self.tokens.get("verifyToken"), challenge)
+        url = self.make_url(self.settings.get("accessToken"), self.settings.get("verifyToken"), challenge)
         response = requests.get(url)
         self.assertEqual(response.status_code, 400)
         self.assertTrue(response.text.startswith("400"))
@@ -167,7 +167,7 @@ class TestAuthPostback(TestPostbacksBase):
         data["entry"].append(self.make_entry(1789953497899630, 1461992750443))
         data["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
         data["entry"][0]["messaging"][0]["optin"] = {"ref": "SOME POSTBACK DATA HERE"}
-        url = self.make_url(self.tokens.get("accessToken"))
+        url = self.make_url(self.settings.get("accessToken"))
         response = requests.post(url, data=json.dumps(data))
         self.assertEqual(response.status_code, 200)
 
@@ -183,7 +183,7 @@ class TestReceiveMessagePostback(TestPostbacksBase):
         data["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
         data["entry"][0]["messaging"][0]["message"] = {"mid":"mid.1461992777559:e8027b338d2b553b73", "seq":75}
         data["entry"][0]["messaging"][0]["message"]["text"] = "This is a test message."
-        url = self.make_url(self.tokens.get("accessToken"))
+        url = self.make_url(self.settings.get("accessToken"))
         response = requests.post(url, data=json.dumps(data))
         self.assertEqual(response.status_code, 200)
 
@@ -203,7 +203,7 @@ class TestReceiveMultipleEntries(TestPostbacksBase):
         data["entry"][1]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992761577))
         data["entry"][1]["messaging"][0]["message"] = {"mid":"mid.1461992761577:e8028b336d2b443c72", "seq":76}
         data["entry"][1]["messaging"][0]["message"]["text"] = "Multi-entry test message 2."
-        url = self.make_url(self.tokens.get("accessToken"))
+        url = self.make_url(self.settings.get("accessToken"))
         response = requests.post(url, data=json.dumps(data))
         self.assertEqual(response.status_code, 200)
 
@@ -222,7 +222,7 @@ class TestReceiveMultipleMessages(TestPostbacksBase):
         data["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992761577))
         data["entry"][0]["messaging"][1]["message"] = {"mid":"mid.1461992761577:e8028b336d2b443c72", "seq":76}
         data["entry"][0]["messaging"][1]["message"]["text"] = "Multi-message test message 2."
-        url = self.make_url(self.tokens.get("accessToken"))
+        url = self.make_url(self.settings.get("accessToken"))
         response = requests.post(url, data=json.dumps(data))
         self.assertEqual(response.status_code, 200)
 
@@ -237,7 +237,7 @@ class TestMessageDeliveredPostback(TestPostbacksBase):
         data["entry"].append(self.make_entry(1789953497899630, 1461992750443))
         data["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
         data["entry"][0]["messaging"][0]["delivery"] = {"mids":["mid.1461992777559:e8027b338d2b553b73"], "watermark":1234567890, "seq":75}
-        url = self.make_url(self.tokens.get("accessToken"))
+        url = self.make_url(self.settings.get("accessToken"))
         response = requests.post(url, data=json.dumps(data))
         self.assertEqual(response.status_code, 200)
 
@@ -252,7 +252,7 @@ class TestUserPostback(TestPostbacksBase):
         data["entry"].append(self.make_entry(1789953497899630, 1461992750443))
         data["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
         data["entry"][0]["messaging"][0]["postback"] = {"payload": "SOME POSTBACK DATA HERE"}
-        url = self.make_url(self.tokens.get("accessToken"))
+        url = self.make_url(self.settings.get("accessToken"))
         response = requests.post(url, data=json.dumps(data))
         self.assertEqual(response.status_code, 200)
 
@@ -265,7 +265,7 @@ class TestPostbackMissingEntry(TestPostbacksBase):
     def test(self):
         data = self.test_data.copy()
         del data["entry"]
-        url = self.make_url(self.tokens.get("accessToken"))
+        url = self.make_url(self.settings.get("accessToken"))
         response = requests.post(url, data=json.dumps(data))
         self.assertEqual(response.status_code, 400)
         self.assertTrue(response.text.startswith("400"))
@@ -280,7 +280,7 @@ class TestPostbackMissingMessage(TestPostbacksBase):
         data = self.test_data.copy()
         data["entry"].append(self.make_entry(1789953497899630, 1461992750443))
         del data["entry"][0]["messaging"]
-        url = self.make_url(self.tokens.get("accessToken"))
+        url = self.make_url(self.settings.get("accessToken"))
         response = requests.post(url, data=json.dumps(data))
         self.assertEqual(response.status_code, 400)
         self.assertTrue(response.text.startswith("400"))

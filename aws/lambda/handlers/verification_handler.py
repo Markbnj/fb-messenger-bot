@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger()
 
 
-def verify(query, tokens):
+def verify(query, settings):
     """
     Handles the API verification step from Facebook, which consists of a GET
     to the webhook with the following querystring args:
@@ -14,10 +14,10 @@ def verify(query, tokens):
 
         hub.challenge = the challenge value Facebook expects back.
 
-    The expected value for the verify_token is stored in config/tokens.json,
-    which is read in webhook.pay and passed in the tokens param to this call.
+    The expected value for the verify_token is stored in config/settings.json,
+    which is read in webhook.pay and passed in the settings param to this call.
     """
-    my_verify_token = tokens.get("verifyToken")
+    my_verify_token = settings.get("verifyToken")
     verify_token = query.get("hub.verify_token")
     if not verify_token:
         logger.debug("Missing verification token")

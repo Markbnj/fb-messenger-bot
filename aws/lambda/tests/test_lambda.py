@@ -17,10 +17,10 @@ class TestBase(unittest.TestCase):
     Provides a test event for use by the individual test cases
     """
     def setUp(self):
-        # Read the tokens from the lambda config, tokens.json
-        self.tokens = None
-        with open("../config/tokens.json") as f:
-            self.tokens = json.loads(f.read())
+        # Read the settings from the lambda config, settings.json
+        self.settings = None
+        with open("../config/settings.json") as f:
+            self.settings = json.loads(f.read())
 
         # set up the test event, derived classes will fill out the
         # rest for their specific test cases
@@ -41,8 +41,8 @@ class TestBase(unittest.TestCase):
         )
 
         # needed for all test cases
-        self.test_event['accessToken'] = self.tokens.get("accessToken")
-        self.test_event['query']['access_token'] = self.tokens.get("accessToken")
+        self.test_event['accessToken'] = self.settings.get("accessToken")
+        self.test_event['query']['access_token'] = self.settings.get("accessToken")
 
 
 class TestVerifyBase(TestBase):
@@ -51,7 +51,7 @@ class TestVerifyBase(TestBase):
 
         # specialize the test event for the verification calls
         self.test_event['method'] = "GET"
-        self.test_event['query']['hub.verify_token'] = self.tokens.get("verifyToken")
+        self.test_event['query']['hub.verify_token'] = self.settings.get("verifyToken")
         self.test_event['query']['hub.challenge'] = "abcdefgh"
 
 

@@ -1,5 +1,5 @@
 *.pyc
-aws/lambda/config/tokens.json
+aws/lambda/config/settings.json
 aws/lambda/lambda.zip
 aws/lambda/libs/*
 !aws/lambda/libs/requirements.txt

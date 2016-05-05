@@ -1,6 +1,0 @@
-/*  Example tokens.json file
-    accessToken: arbitrary string (I use a short GUID) added to the FB callback url as an auth check
-    verifyToken: the verification string you ask FB to send with the API verification GET
-    pageToken: the page token for the FB page the bot is subscribed to
-*/
-{"accessToken": "YOUR_ACCESS_TOKEN", "verifyToken": "YOUR_VERIFY_TOKEN", "pageToken": "YOUR_PAGE_TOKEN"}
