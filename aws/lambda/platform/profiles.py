@@ -25,5 +25,4 @@ def get(user_id, fields=default_fields):
     if response.status_code == 200:
         return json.loads(response.text)
     else:
-        logger.debug("Graph API request error; status: {}, response: {}".format(response.status_code, response.text))
-        return None
+        raise Exception("500 Internal Server Error; graph API call failed with status: {}; message: {}".format(response.status_code, response.text))

@@ -3,37 +3,33 @@ import verification_handler
 import message_handler
 import auth_handler
 import postback_handler
+from validation import validate_postback
 
 
 logger = logging.getLogger()
 
 
-def dispatch_callback(event, settings):
+def dispatch_postback(event, settings):
     """
-    Recieves a callback event and walks the entry and messaging lists
+    Recieves a postback event and walks the entry and messaging lists
     passing the data to the proper handlers.
     """
-    entries = event["body"].get("entry")
-    try:
-        for entry in entries:
-            page_id = entry.get("id")
-            time = entry.get("time")
-            messages = entry.get("messaging")
-            for message in messages:
-                if "optin" in message:
-                    return auth_handler.auth(page_id, time, message, settings)
-                elif "message" in message:
-                    return message_handler.received(page_id, time, message, settings)
-                elif "delivery" in message:
-                    return message_handler.delivered(page_id, time, message, settings)
-                elif "postback" in message:
-                    return postback_handler.postback(page_id, time, message, settings)
-                else:
-                    logger.warning("Cannot process message: {}".format(message))
-    except Exception as e:
-        logger.error("Error processing event: {}".format(e))
-        raise Exception("400 Bad Request; missing or bad data in event")
+    validate_postback(event["body"])
 
+    entries = event["body"]["entry"]
+    for entry in entries:
+        page_id = entry["id"]
+        time = entry["time"]
+        messages = entry["messaging"]
+        for envelope in messages:
+            if "optin" in envelope:
+                return auth_handler.auth(page_id, time, envelope, settings)
+            elif "message" in envelope:
+                return message_handler.received(page_id, time, envelope, settings)
+            elif "delivery" in envelope:
+                return message_handler.delivered(page_id, time, envelope, settings)
+            else:
+                return postback_handler.postback(page_id, time, envelope, settings)
 
 
 def dispatch(event, settings):
@@ -47,6 +43,6 @@ def dispatch(event, settings):
         return verification_handler.verify(event['query'], settings)
     elif method == "POST":
         logger.debug("POST method received; event={}".format(event))
-        return dispatch_callback(event, settings)
+        return dispatch_postback(event, settings)
     else:
         raise Exception("400 Bad Request; unhandled method {}".format(method))

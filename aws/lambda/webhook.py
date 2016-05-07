@@ -37,12 +37,14 @@ def handler(event, context):
     logger.debug("AWS request context: {}".format(context))
     my_access_token = settings.get("accessToken")
     access_token = event.get("accessToken")
-    if not access_token:
-        logger.debug("Missing access token")
-        raise Exception("400 Bad Request; missing access token")
-    if access_token != my_access_token:
-        logger.debug("Access token check failed")
-        raise Exception("403 Forbidden; bad access token")
-    else:
-        return handlers.dispatch(event, settings)
+    try:
+        if not access_token:
+            raise Exception("400 Bad Request; missing access token")
+        if access_token != my_access_token:
+            raise Exception("403 Forbidden; bad access token")
+        else:
+            return handlers.dispatch(event, settings)
+    except Exception as e:
+        logger.error("{}".format(e))
+        raise
 

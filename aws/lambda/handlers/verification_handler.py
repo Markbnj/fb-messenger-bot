@@ -1,9 +1,3 @@
-import logging
-
-
-logger = logging.getLogger()
-
-
 def verify(query, settings):
     """
     Handles the API verification step from Facebook, which consists of a GET
@@ -20,7 +14,6 @@ def verify(query, settings):
     my_verify_token = settings.get("verifyToken")
     verify_token = query.get("hub.verify_token")
     if not verify_token:
-        logger.debug("Missing verification token")
         raise Exception("400 Bad Request; missing verification token")
 
     if verify_token == my_verify_token:
