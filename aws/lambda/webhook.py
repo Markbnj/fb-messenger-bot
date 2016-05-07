@@ -1,4 +1,4 @@
-import handlers
+from config import settings
 import inspect
 import json
 import logging
@@ -15,22 +15,17 @@ logger.setLevel(logging.DEBUG)
 
 
 """
-All code has to be relative to the root directory of the lambda function entry
-point, and there can only be one file in the root path, so in order to make
-modules located in subdirectories importable we make the top folder the first
-entry in sys.path.
+Add the libs directory to the path so we can access installed packages
 """
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-sys.path.insert(0, current_dir)
+sys.path.insert(2, os.path.join(current_dir, "libs"))
 
 
 """
-Read in the three secrets from config/tokens.json.
+This causes installed packages (like requests) to be imported to is has
+to be placed after the path fix above.
 """
-settings = None
-config_path = os.path.join(current_dir, "config")
-with open("{}/settings.json".format(config_path), "rb") as f:
-    settings = json.loads(f.read())
+import handlers
 
 
 def handler(event, context):

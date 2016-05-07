@@ -13,5 +13,5 @@ def postback(page_id, time, data, settings):
         data: the postback content, $.entry[i].messaging[i] in the callback data
         settings: contains the page token in "pageToken"
     """
-    logger.debug("Auth recv: page_id: {}, time: {}, data: {}".format(page_id, time, data))
+    logger.debug("Postback recv: page_id: {}, time: {}, data: {}".format(page_id, time, data))
 

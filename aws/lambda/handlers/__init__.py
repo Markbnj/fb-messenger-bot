@@ -30,8 +30,8 @@ def dispatch_callback(event, settings):
                     return postback_handler.postback(page_id, time, message, settings)
                 else:
                     logger.warning("Cannot process message: {}".format(message))
-    except:
-        logger.debug("Error processing event: {}".format(event))
+    except Exception as e:
+        logger.error("Error processing event: {}".format(e))
         raise Exception("400 Bad Request; missing or bad data in event")
 
 

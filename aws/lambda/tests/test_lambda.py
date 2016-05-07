@@ -1,15 +1,29 @@
 import json
+import logging
 import os
 import sys
 import unittest
 
 
-# Needed so we can import the handler from the webhook mod in the
-# parent directory
-sys.path.insert(1, os.path.join(sys.path[0], ".."))
+"""
+Add the parent directory to the path so that we can import the
+webhook and tests can access the entrypoint.
+"""
+parent = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.insert(0, parent)
 
 
 from webhook import handler
+from config import settings
+
+
+"""
+Adds a console handler to the logger to be used during test runs.
+"""
+logger = logging.getLogger()
+sh = logging.StreamHandler()
+sh.setLevel(logging.DEBUG)
+logger.addHandler(sh)
 
 
 class TestBase(unittest.TestCase):
@@ -17,10 +31,7 @@ class TestBase(unittest.TestCase):
     Provides a test event for use by the individual test cases
     """
     def setUp(self):
-        # Read the settings from the lambda config, settings.json
-        self.settings = None
-        with open("../config/settings.json") as f:
-            self.settings = json.loads(f.read())
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
 
         # set up the test event, derived classes will fill out the
         # rest for their specific test cases
@@ -32,17 +43,15 @@ class TestBase(unittest.TestCase):
             "headers": {},
             "params": {},
             "query": {
-                "access_token": "",
-                "hub.verify_token": "",
-                "hub.challenge": ""
+                "access_token": ""
             }
         }
         """
         )
 
         # needed for all test cases
-        self.test_event['accessToken'] = self.settings.get("accessToken")
-        self.test_event['query']['access_token'] = self.settings.get("accessToken")
+        self.test_event['accessToken'] = settings.get("accessToken")
+        self.test_event['query']['access_token'] = settings.get("accessToken")
 
 
 class TestVerifyBase(TestBase):
@@ -51,7 +60,7 @@ class TestVerifyBase(TestBase):
 
         # specialize the test event for the verification calls
         self.test_event['method'] = "GET"
-        self.test_event['query']['hub.verify_token'] = self.settings.get("verifyToken")
+        self.test_event['query']['hub.verify_token'] = settings.get("verifyToken")
         self.test_event['query']['hub.challenge'] = "abcdefgh"
 
 
@@ -71,9 +80,8 @@ class TestVerifyBadAccessToken(TestVerifyBase):
     message.
     """
     def test(self):
-        event = self.test_event.copy()
-        event["accessToken"] = "yadayada"
-        self.assertRaises(Exception, handler, event, None)
+        self.test_event["accessToken"] = "yadayada"
+        self.assertRaises(Exception, handler, self.test_event, None)
 
 
 class TestVerifyMissingAccessToken(TestVerifyBase):
@@ -82,9 +90,8 @@ class TestVerifyMissingAccessToken(TestVerifyBase):
     access token. Should raise an exception with "400" in the error.
     """
     def test(self):
-        event = self.test_event.copy()
-        del event["accessToken"]
-        self.assertRaises(Exception, handler, event, None)
+        del self.test_event["accessToken"]
+        self.assertRaises(Exception, handler, self.test_event, None)
 
 
 class TestVerifyBadVerificationToken(TestVerifyBase):
@@ -93,9 +100,8 @@ class TestVerifyBadVerificationToken(TestVerifyBase):
     verification token. Should raise an exception with "403" in the error.
     """
     def test(self):
-        event = self.test_event.copy()
-        event["query"]["hub.verify_token"] = "bad-verify-token"
-        self.assertRaises(Exception, handler, event, None)
+        self.test_event["query"]["hub.verify_token"] = "bad-verify-token"
+        self.assertRaises(Exception, handler, self.test_event, None)
 
 
 class TestVerifyMissingVerificationToken(TestVerifyBase):
@@ -104,9 +110,8 @@ class TestVerifyMissingVerificationToken(TestVerifyBase):
     verification token. Should raise an exception with "400" in the error.
     """
     def test(self):
-        event = self.test_event.copy()
-        del event["query"]["hub.verify_token"]
-        self.assertRaises(Exception, handler, event, None)
+        del self.test_event["query"]["hub.verify_token"]
+        self.assertRaises(Exception, handler, self.test_event, None)
 
 
 class TestVerifyMissingChallenge(TestVerifyBase):
@@ -115,9 +120,8 @@ class TestVerifyMissingChallenge(TestVerifyBase):
     access token. Should raise an exception with "400" in the error.
     """
     def test(self):
-        event = self.test_event.copy()
-        del event["query"]["hub.challenge"]
-        self.assertRaises(Exception, handler, event, None)
+        del self.test_event["query"]["hub.challenge"]
+        self.assertRaises(Exception, handler, self.test_event, None)
 
 
 class TestPostbacksBase(TestBase):
@@ -154,7 +158,7 @@ class TestPostbacksBase(TestBase):
         message["timestamp"] = timestamp
         return message
 
-    def make_entry(self, page_id, time, messages=[]):
+    def make_entry(self, page_id, time):
         """
         Build and return a single object for the "entry" array of the
         test event. See:
@@ -170,7 +174,6 @@ class TestPostbacksBase(TestBase):
         """)
         entry["id"] = page_id
         entry["time"] = time
-        entry["messaging"] = messages
         return entry
 
 
@@ -180,11 +183,10 @@ class TestAuthPostback(TestPostbacksBase):
     return nothing.
     """
     def test(self):
-        event = self.test_event.copy()
-        event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
-        event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
-        event["body"]["entry"][0]["messaging"][0]["optin"] = {"ref": "SOME POSTBACK DATA HERE"}
-        handler(event, None)
+        self.test_event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
+        self.test_event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
+        self.test_event["body"]["entry"][0]["messaging"][0]["optin"] = {"ref": "PASS_THROUGH_PARAM"}
+        handler(self.test_event, None)
 
 
 class TestReceiveMessagePostback(TestPostbacksBase):
@@ -193,12 +195,11 @@ class TestReceiveMessagePostback(TestPostbacksBase):
     return nothing.
     """
     def test(self):
-        event = self.test_event.copy()
-        event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
-        event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
-        event["body"]["entry"][0]["messaging"][0]["message"] = {"mid":"mid.1461992777559:e8027b338d2b553b73", "seq":75}
-        event["body"]["entry"][0]["messaging"][0]["message"]["text"] = "This is a test message."
-        handler(event, None)
+        self.test_event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
+        self.test_event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
+        self.test_event["body"]["entry"][0]["messaging"][0]["message"] = {"mid":"mid.1461992777559:e8027b338d2b553b73", "seq":75}
+        self.test_event["body"]["entry"][0]["messaging"][0]["message"]["text"] = "This is a test message."
+        handler(self.test_event, None)
 
 
 class TestReceiveMultipleEntries(TestPostbacksBase):
@@ -207,16 +208,15 @@ class TestReceiveMultipleEntries(TestPostbacksBase):
     entries, each with a single message. Should return nothing.
     """
     def test(self):
-        event = self.test_event.copy()
-        event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
-        event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
-        event["body"]["entry"][0]["messaging"][0]["message"] = {"mid":"mid.1461992777559:e8027b338d2b553b73", "seq":75}
-        event["body"]["entry"][0]["messaging"][0]["message"]["text"] = "Multi-entry test message 1."
-        event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992760478))
-        event["body"]["entry"][1]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992761577))
-        event["body"]["entry"][1]["messaging"][0]["message"] = {"mid":"mid.1461992761577:e8028b336d2b443c72", "seq":76}
-        event["body"]["entry"][1]["messaging"][0]["message"]["text"] = "Multi-entry test message 2."
-        handler(event, None)
+        self.test_event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
+        self.test_event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
+        self.test_event["body"]["entry"][0]["messaging"][0]["message"] = {"mid":"mid.1461992777559:e8027b338d2b553b73", "seq":75}
+        self.test_event["body"]["entry"][0]["messaging"][0]["message"]["text"] = "Multi-entry test message 1."
+        self.test_event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992760478))
+        self.test_event["body"]["entry"][1]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992761577))
+        self.test_event["body"]["entry"][1]["messaging"][0]["message"] = {"mid":"mid.1461992761577:e8028b336d2b443c72", "seq":76}
+        self.test_event["body"]["entry"][1]["messaging"][0]["message"]["text"] = "Multi-entry test message 2."
+        handler(self.test_event, None)
 
 
 class TestReceiveMultipleMessages(TestPostbacksBase):
@@ -225,15 +225,14 @@ class TestReceiveMultipleMessages(TestPostbacksBase):
     entry with multiple messages. Should return nothing.
     """
     def test(self):
-        event = self.test_event.copy()
-        event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
-        event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
-        event["body"]["entry"][0]["messaging"][0]["message"] = {"mid":"mid.1461992777559:e8027b338d2b553b73", "seq":75}
-        event["body"]["entry"][0]["messaging"][0]["message"]["text"] = "Multi-message test message 1."
-        event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992761577))
-        event["body"]["entry"][0]["messaging"][1]["message"] = {"mid":"mid.1461992761577:e8028b336d2b443c72", "seq":76}
-        event["body"]["entry"][0]["messaging"][1]["message"]["text"] = "Multi-message test message 2."
-        handler(event, None)
+        self.test_event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
+        self.test_event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
+        self.test_event["body"]["entry"][0]["messaging"][0]["message"] = {"mid":"mid.1461992777559:e8027b338d2b553b73", "seq":75}
+        self.test_event["body"]["entry"][0]["messaging"][0]["message"]["text"] = "Multi-message test message 1."
+        self.test_event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992761577))
+        self.test_event["body"]["entry"][0]["messaging"][1]["message"] = {"mid":"mid.1461992761577:e8028b336d2b443c72", "seq":76}
+        self.test_event["body"]["entry"][0]["messaging"][1]["message"]["text"] = "Multi-message test message 2."
+        handler(self.test_event, None)
 
 
 class TestMessageDeliveredPostback(TestPostbacksBase):
@@ -242,11 +241,10 @@ class TestMessageDeliveredPostback(TestPostbacksBase):
     Should return nothing.
     """
     def test(self):
-        event = self.test_event.copy()
-        event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
-        event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
-        event["body"]["entry"][0]["messaging"][0]["delivery"] = {"mids":["mid.1461992777559:e8027b338d2b553b73"], "watermark":1234567890, "seq":75}
-        handler(event, None)
+        self.test_event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
+        self.test_event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
+        self.test_event["body"]["entry"][0]["messaging"][0]["delivery"] = {"mids":["mid.1461992777559:e8027b338d2b553b73"], "watermark":1234567890, "seq":75}
+        handler(self.test_event, None)
 
 
 class TestUserPostback(TestPostbacksBase):
@@ -255,11 +253,10 @@ class TestUserPostback(TestPostbacksBase):
     Should return nothing.
     """
     def test(self):
-        event = self.test_event.copy()
-        event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
-        event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
-        event["body"]["entry"][0]["messaging"][0]["postback"] = {"payload": "SOME POSTBACK DATA HERE"}
-        handler(event, None)
+        self.test_event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
+        self.test_event["body"]["entry"][0]["messaging"].append(self.make_message(983440235096641, 1789953497899630, 1461992777559))
+        self.test_event["body"]["entry"][0]["messaging"][0]["postback"] = {"payload": "SOME POSTBACK DATA HERE"}
+        handler(self.test_event, None)
 
 
 class TestPostbackMissingEntry(TestPostbacksBase):
@@ -268,9 +265,8 @@ class TestPostbackMissingEntry(TestPostbacksBase):
     is missing an entry. Should raise an exception with "400" in the msg.
     """
     def test(self):
-        event = self.test_event.copy()
-        del event["body"]["entry"]
-        self.assertRaises(Exception, handler, event, None)
+        del self.test_event["body"]["entry"]
+        self.assertRaises(Exception, handler, self.test_event, None)
 
 
 class TestPostbackMissingMessage(TestPostbacksBase):
@@ -279,10 +275,9 @@ class TestPostbackMissingMessage(TestPostbacksBase):
     is missing a message. Should raise an exception with "400" in the msg.
     """
     def test(self):
-        event = self.test_event.copy()
-        event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
-        del event["body"]["entry"][0]["messaging"]
-        self.assertRaises(Exception, handler, event, None)
+        self.test_event["body"]["entry"].append(self.make_entry(1789953497899630, 1461992750443))
+        del self.test_event["body"]["entry"][0]["messaging"]
+        self.assertRaises(Exception, handler, self.test_event, None)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 import logging
+from platform import profiles
 
 
 logger = logging.getLogger()
@@ -14,6 +15,8 @@ def received(page_id, time, message, settings):
         settings: contains the page token in "pageToken"
     """
     logger.debug("Message recv: page_id: {}, time: {}, message: {}".format(page_id, time, message))
+    profile = profiles.get(message["sender"]["id"])
+    logger.debug("Hello {}".format(profile["first_name"]))
 
 
 def delivered(page_id, time, receipt, settings):
