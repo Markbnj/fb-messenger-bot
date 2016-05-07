@@ -22,7 +22,7 @@ sys.path.insert(2, os.path.join(current_dir, "libs"))
 
 
 """
-This causes installed packages (like requests) to be imported to is has
+This causes installed packages (like requests) to be imported so it has
 to be placed after the path fix above.
 """
 import handlers
