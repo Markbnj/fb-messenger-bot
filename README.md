@@ -4,11 +4,11 @@
 
 #### Roadmap
 
-  - Create interface to get user profile
+  - Add 500 mapping to the API gateway responses
   - Create interfaces to send simple and structured messages
   - Implement interface to DynamoDB or another store for sessions
   - Implement interface to wit.ai at pluggable abstraction level
   - Create swagger definition of API gateway setup
-  - Create make targets to build/configurfe the gateway
+  - Create make targets to build/configure the gateway
   - Create make targets to create the lambda function
   - Support persistent user prefs keyed on page-scoped user id (dynamodb? elasticache?)
