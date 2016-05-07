@@ -11,3 +11,4 @@
   - Create swagger definition of API gateway setup
   - Create make targets to build/configurfe the gateway
   - Create make targets to create the lambda function
+  - Support persistent user prefs keyed on page-scoped user id (dynamodb? elasticache?)
