@@ -1,4 +1,6 @@
-def verify(query, settings):
+from config import settings
+
+def verify(query):
     """
     Handles the API verification step from Facebook, which consists of a GET
     to the webhook with the following querystring args:

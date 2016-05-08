@@ -1,10 +1,11 @@
+from config import settings
 import logging
 
 
 logger = logging.getLogger()
 
 
-def auth(page_id, time, data, settings):
+def auth(page_id, time, data):
     """
     Handles the auth callback event.
     Params:

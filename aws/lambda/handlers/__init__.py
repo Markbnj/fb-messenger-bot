@@ -9,40 +9,38 @@ from validation import validate_postback
 logger = logging.getLogger()
 
 
-def dispatch_postback(event, settings):
+def dispatch_postback(body):
     """
     Recieves a postback event and walks the entry and messaging lists
     passing the data to the proper handlers.
     """
-    validate_postback(event["body"])
+    validate_postback(body)
 
-    entries = event["body"]["entry"]
+    entries = body["entry"]
     for entry in entries:
         page_id = entry["id"]
         time = entry["time"]
         messages = entry["messaging"]
         for envelope in messages:
             if "optin" in envelope:
-                return auth_handler.auth(page_id, time, envelope, settings)
+                return auth_handler.auth(page_id, time, envelope)
             elif "message" in envelope:
-                return message_handler.received(page_id, time, envelope, settings)
+                return message_handler.received(page_id, time, envelope)
             elif "delivery" in envelope:
-                return message_handler.delivered(page_id, time, envelope, settings)
+                return message_handler.delivered(page_id, time, envelope)
             else:
-                return postback_handler.postback(page_id, time, envelope, settings)
+                return postback_handler.postback(page_id, time, envelope)
 
 
-def dispatch(event, settings):
+def dispatch(method, query, body):
     """
     Receives all events from the webhook entrypoint and figures out which
     handler method to call.
     """
-    method = event.get("method")
+    logger.debug("{} method received; query={}, body={}".format(method, query, body))
     if method == "GET":
-        logger.debug("GET method received; event={}".format(event))
-        return verification_handler.verify(event['query'], settings)
+        return verification_handler.verify(query)
     elif method == "POST":
-        logger.debug("POST method received; event={}".format(event))
-        return dispatch_postback(event, settings)
+        return dispatch_postback(body)
     else:
         raise Exception("400 Bad Request; unhandled method {}".format(method))

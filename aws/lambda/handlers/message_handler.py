@@ -1,3 +1,4 @@
+from config import settings
 import logging
 from platform import profiles
 
@@ -5,7 +6,7 @@ from platform import profiles
 logger = logging.getLogger()
 
 
-def received(page_id, time, envelope, settings):
+def received(page_id, time, envelope):
     """
     Processes a single received message.
     Params:
@@ -19,7 +20,7 @@ def received(page_id, time, envelope, settings):
     logger.debug("Hello {}".format(profile["first_name"]))
 
 
-def delivered(page_id, time, receipt, settings):
+def delivered(page_id, time, receipt):
     """
     Processes a single message delivery receipt (callback)
     Params:

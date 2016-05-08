@@ -1,10 +1,11 @@
+from config import settings
 import logging
 
 
 logger = logging.getLogger()
 
 
-def postback(page_id, time, data, settings):
+def postback(page_id, time, data):
     """
     Handles a postback event.
     Params:
