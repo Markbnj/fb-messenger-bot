@@ -17,7 +17,7 @@ class TestBase(unittest.TestCase):
 
         # Read the settings from the lambda config, settings.json
         self.settings = None
-        with open("../../lambda/config/settings.json") as f:
+        with open("../../../webhook/config/settings.json") as f:
             self.settings = json.loads(f.read())
 
     def make_url(self, access_token, verify_token=None, challenge=None):
@@ -137,7 +137,7 @@ class TestPostbacksBase(TestBase):
         message["timestamp"] = timestamp
         return message
 
-    def make_entry(self, page_id, time, messages=[]):
+    def make_entry(self, page_id, time):
         """
         Build and return a single object for the "entry" array of the
         test data. See:
@@ -153,7 +153,6 @@ class TestPostbacksBase(TestBase):
         """)
         entry["id"] = page_id
         entry["time"] = time
-        entry["messaging"] = messages
         return entry
 
 

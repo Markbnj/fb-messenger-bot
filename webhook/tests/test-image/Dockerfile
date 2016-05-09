@@ -1,8 +1,12 @@
-FROM lambda-test-base
+FROM webhook-test-base
 MAINTAINER Mark Betz <betz.mark@gmail.com>
 
-ADD lambda /usr/local/bin/lambda
+ADD webhook.zip /usr/local/bin/webhook/
 
-WORKDIR /usr/local/bin/lambda/tests
+RUN cd /usr/local/bin/webhook &&\
+ unzip -q webhook.zip &&\
+ rm webhook.zip
 
-ENTRYPOINT ["python", "test_lambda.py"]
+WORKDIR /usr/local/bin/webhook/tests
+
+ENTRYPOINT ["python", "test_webhook.py"]
