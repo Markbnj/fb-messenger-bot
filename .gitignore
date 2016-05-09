@@ -1,10 +1,10 @@
 *.log
 *.pyc
+*.zip
 webhook/config/settings.json
-aws/lambda/lambda.zip
+package/*
 webhook/libs/*
 !webhook/libs/requirements.txt
 !webhook/libs/update-reqs
 !webhook/libs/__init__.py
 aws/api-gateway/config/endpoint.json
-webhook/tests/test-image/lambda/*
