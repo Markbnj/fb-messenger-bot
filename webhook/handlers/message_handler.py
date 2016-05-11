@@ -16,8 +16,6 @@ def received(page_id, time, envelope):
         settings: contains the page token in "pageToken"
     """
     logger.debug("Message recv: page_id: {}, time: {}, envelope: {}".format(page_id, time, envelope))
-    profile = profiles.get(envelope["sender"]["id"])
-    logger.debug("Hello {}".format(profile["first_name"]))
 
 
 def delivered(page_id, time, receipt):
