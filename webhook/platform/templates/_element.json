@@ -1,0 +1,8 @@
+/* component template for a generic message element */
+{
+    "title": "{{element_title}}",
+    "image_url": "{{element_image_url}}",
+    "item_url": "{{element_item_url}}",
+    "subtitle": "{{element_subtitle}}",
+    "buttons": []
+}

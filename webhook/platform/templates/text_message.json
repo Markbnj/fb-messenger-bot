@@ -1,0 +1,9 @@
+/* simple text message template */
+{
+    "recipient": {
+        "id": "{{recipient_id}}"
+    },
+    "message": {
+        "text": "{{message_text}}"
+    }
+}

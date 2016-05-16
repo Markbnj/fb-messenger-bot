@@ -1,0 +1,15 @@
+/* generic message template */
+{
+    "recipient": {
+        "id": "{{recipient_id}}"
+    },
+    "message": {
+        "attachment": {
+            "type": "template",
+            "payload": {
+                "template_type": "generic",
+                "elements": []
+            }
+        }
+    }
+}

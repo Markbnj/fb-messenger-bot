@@ -1,0 +1,14 @@
+/* message with image attachment template */
+{
+    "recipient": {
+        "id": "{{recipient_id}}"
+    },
+    "message": {
+        "attachment": {
+            "type": "image",
+            "payload": {
+                "url": "{{image_url}}"
+            }
+        }
+    }
+}

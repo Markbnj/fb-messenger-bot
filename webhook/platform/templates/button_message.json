@@ -1,0 +1,16 @@
+/* message with buttons template */
+{
+    "recipient": {
+        "id": "{{recipient_id}}"
+    },
+    "message": {
+        "attachment": {
+            "type": "template",
+            "payload": {
+                "template_type": "button",
+                "text": "{{prompt_text}}",
+                "buttons": []
+            }
+        }
+    }
+}
