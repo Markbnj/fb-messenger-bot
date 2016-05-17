@@ -20,9 +20,10 @@ from platform import messages, profiles
 Adds a console logger to be used during test runs.
 """
 logger = logging.getLogger()
-sh = logging.StreamHandler()
-sh.setLevel(logging.DEBUG)
-logger.addHandler(sh)
+if not len([handler for handler in logger.handlers if isinstance(handler,logging.StreamHandler)]):
+    sh = logging.StreamHandler()
+    sh.setLevel(logging.DEBUG)
+    logger.addHandler(sh)
 
 
 class TestMakeTextMessage(unittest.TestCase):
