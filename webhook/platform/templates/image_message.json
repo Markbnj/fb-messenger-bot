@@ -1,7 +1,6 @@
-/* message with image attachment template */
 {
     "recipient": {
-        "id": "{{recipient_id}}"
+        "id": ""
     },
     "message": {
         "attachment": {

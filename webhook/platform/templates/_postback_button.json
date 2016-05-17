@@ -1,4 +1,3 @@
-/* component template for a postback button */
 {
     "type": "postback",
     "title": "{{button_title}}",

@@ -1,4 +1,3 @@
-/* component template for a url button */
 {
     "type": "web_url",
     "url": "{{button_url}}",

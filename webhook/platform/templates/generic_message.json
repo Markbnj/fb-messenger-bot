@@ -1,7 +1,6 @@
-/* generic message template */
 {
     "recipient": {
-        "id": "{{recipient_id}}"
+        "id": ""
     },
     "message": {
         "attachment": {
