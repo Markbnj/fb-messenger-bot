@@ -62,14 +62,15 @@ def _render(template, data):
     return template
 
 
-def make_message(recipient_id, template_name, data):
+def make_message(recipient_id, template_name, data=None, buttons=None):
     """
     Loads and returns a message template
     Params:
 
-        recipient_id: FB page-scoped id of the recipient user
-        template_name: string name of template to load
-        data: dictionary of template values
+        recipient_id: required, FB page-scoped id of the recipient user
+        template_name: required, string name of template to load
+        data: optional, dictionary of template values
+        buttons: optional, list of buttons to add, template must be "button_message"
     """
     if not template_name.endswith(".json"):
         template_file = os.path.join(templates_dir, "{}.json".format(template_name))
@@ -79,10 +80,15 @@ def make_message(recipient_id, template_name, data):
         with open(template_file, "rb") as f:
             template = json.loads(f.read())
             template["recipient"]["id"] = recipient_id
-            return _render(template, data)
+            if data:
+                template = _render(template, data)
+            if buttons:
+                template["message"]["attachment"]["payload"]["buttons"].extend(buttons)
     except Exception as e:
         logger.error("Failed to render template: {}; error: {}".format(template_name, e))
         raise Exception("500 Internal Server Error; failed to render template")
+    else:
+        return template
 
 
 def add_message_element(message, title, subtitle=None, image_url=None, item_url=None, buttons=None):
@@ -108,7 +114,10 @@ def make_url_button(title, url):
         title: the button title
         url: the url to open when the button is tapped
     """
-    pass
+    template_file = os.path.join(templates_dir, "_url_button.json")
+    with open(template_file, "rb") as f:
+        template = json.loads(f.read())
+        return _render(template, {"button_url":url, "button_title":title})
 
 
 def make_postback_button(title, payload):
@@ -119,4 +128,8 @@ def make_postback_button(title, payload):
         title: the button title
         payload: data returned with the postback
     """
-    pass
+    template_file = os.path.join(templates_dir, "_postback_button.json")
+    with open(template_file, "rb") as f:
+        template = json.loads(f.read())
+        return _render(template, {"button_payload":payload, "button_title":title})
+
