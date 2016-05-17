@@ -3,6 +3,8 @@ import json
 import logging
 import os
 import re
+import requests
+from validation import validate_message
 
 
 logger = logging.getLogger()
@@ -33,7 +35,15 @@ def send_message(message):
     Returns:
         stuff
     """
-    pass
+    validate_message(message)
+    url = settings.get("graphSendUrl").format(settings.get("pageToken"))
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(url, headers=headers, data=json.dumps(message))
+    if response.status_code == 200:
+        return json.loads(response.text)
+    else:
+        logger.error("Send message call failed: {}".format(response.text))
+        raise Exception("500 Internal Server Error; graph API call failed with status: {}".format(response.status_code))
 
 
 def _render(template, data):
