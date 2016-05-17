@@ -50,10 +50,14 @@ def _render(template, data):
                 template[k] = _render(v, data)
                 if len(template[k]) == 0:
                     del template[k]
+            elif isinstance(v, list):
+                continue
             elif v == "{{{{{}}}}}".format(field_name):
                 template[k] = data[field_name]
     for (k,v) in template.items():
-        if not isinstance(v,dict) and field_re.match(v):
+        if isinstance(v,(dict,list)):
+            continue
+        if field_re.match(v):
             del template[k]
     return template
 
