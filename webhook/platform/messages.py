@@ -1,6 +1,12 @@
 from config import settings
 import json
+import logging
 import os
+import re
+
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 
 templates_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/")
@@ -30,6 +36,28 @@ def send_message(message):
     pass
 
 
+def _render(template, data):
+    """
+    Performs substitution and pruning of a template by replacing
+    all matching values in the template with the values in data,
+    and then removing any unmatched patterns. Calls itself
+    recursively if the value of a key is a dict.
+    """
+    field_re = re.compile("{{.+}}")
+    for field_name in data:
+        for (k,v) in template.items():
+            if isinstance(v, dict):
+                template[k] = _render(v, data)
+                if len(template[k]) == 0:
+                    del template[k]
+            elif v == "{{{{{}}}}}".format(field_name):
+                template[k] = data[field_name]
+    for (k,v) in template.items():
+        if not isinstance(v,dict) and field_re.match(v):
+            del template[k]
+    return template
+
+
 def make_message(recipient_id, template_name, data):
     """
     Loads and returns a message template
@@ -39,7 +67,18 @@ def make_message(recipient_id, template_name, data):
         template_name: string name of template to load
         data: dictionary of template values
     """
-    pass
+    if not template_name.endswith(".json"):
+        template_file = os.path.join(templates_dir, "{}.json".format(template_name))
+    else:
+        template_file = os.path.join(templates_dir, template_name)
+    try:
+        with open(template_file, "rb") as f:
+            template = json.loads(f.read())
+            template["recipient"]["id"] = recipient_id
+            return _render(template, data)
+    except Exception as e:
+        logger.error("Failed to render template: {}; error: {}".format(template_name, e))
+        raise Exception("500 Internal Server Error; failed to render template")
 
 
 def add_message_element(message, title, subtitle=None, image_url=None, item_url=None, buttons=None):
