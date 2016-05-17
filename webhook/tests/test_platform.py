@@ -77,3 +77,34 @@ class TestMakeImageMessage(unittest.TestCase):
         """
         message = messages.make_message("1789953497899630", "image_message", {"image_url": "http://some.where/but_not_here.png"})
         self.assertEqual(message, self.expected)
+
+
+class TestMakeButtonMessage(unittest.TestCase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.expected = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "button",
+                        "text": "Here lies a button",
+                        "buttons": []
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        """
+        Tests messages.make_message by checking that the returned dict matches
+        self.expected, defined above.
+        """
+        message = messages.make_message("1789953497899630", "button_message", {"prompt_text": "Here lies a button"})
+        self.assertEqual(message, self.expected)
