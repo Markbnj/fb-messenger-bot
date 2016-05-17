@@ -9,4 +9,4 @@ RUN cd /usr/local/bin/webhook &&\
 
 WORKDIR /usr/local/bin/webhook/tests
 
-ENTRYPOINT ["python", "test_webhook.py"]
+ENTRYPOINT ["python", "-m", "unittest", "discover", "."]
