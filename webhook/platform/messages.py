@@ -79,11 +79,11 @@ def make_message(recipient_id, template_name, data=None, buttons=None):
     try:
         with open(template_file, "rb") as f:
             template = json.loads(f.read())
-            template["recipient"]["id"] = recipient_id
-            if data:
-                template = _render(template, data)
-            if buttons:
-                template["message"]["attachment"]["payload"]["buttons"].extend(buttons)
+        template["recipient"]["id"] = recipient_id
+        if data:
+            template = _render(template, data)
+        if buttons:
+            template["message"]["attachment"]["payload"]["buttons"].extend(buttons)
     except Exception as e:
         logger.error("Failed to render template: {}; error: {}".format(template_name, e))
         raise Exception("500 Internal Server Error; failed to render template")
@@ -91,7 +91,7 @@ def make_message(recipient_id, template_name, data=None, buttons=None):
         return template
 
 
-def add_message_element(message, title, subtitle=None, image_url=None, item_url=None, buttons=None):
+def add_message_element(message, title, subtitle="", image_url="", item_url="", buttons=None):
     """
     Adds a message element to an existing message and returns it
     Params:
@@ -103,7 +103,18 @@ def add_message_element(message, title, subtitle=None, image_url=None, item_url=
         item_url: optional, string url to open when element is tapped
         buttons: optional, list of buttons created with make_message_button()
     """
-    pass
+    template_file = os.path.join(templates_dir, "_element.json")
+    with open(template_file, "rb") as f:
+        template = json.loads(f.read())
+    template = _render(template, {
+        "element_title": title,
+        "element_image_url": image_url if image_url else "",
+        "element_item_url": item_url if item_url else "",
+        "element_subtitle": subtitle if subtitle else ""
+    })
+    if buttons:
+        template["buttons"].extend(buttons)
+    message["message"]["attachment"]["payload"]["elements"].append(template)
 
 
 def make_url_button(title, url):
@@ -117,7 +128,7 @@ def make_url_button(title, url):
     template_file = os.path.join(templates_dir, "_url_button.json")
     with open(template_file, "rb") as f:
         template = json.loads(f.read())
-        return _render(template, {"button_url":url, "button_title":title})
+    return _render(template, {"button_url":url, "button_title":title})
 
 
 def make_postback_button(title, payload):
@@ -131,5 +142,5 @@ def make_postback_button(title, payload):
     template_file = os.path.join(templates_dir, "_postback_button.json")
     with open(template_file, "rb") as f:
         template = json.loads(f.read())
-        return _render(template, {"button_payload":payload, "button_title":title})
+    return _render(template, {"button_payload":payload, "button_title":title})
 
