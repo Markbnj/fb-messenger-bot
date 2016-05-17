@@ -94,7 +94,18 @@ class TestMakeButtonMessage(unittest.TestCase):
                     "payload": {
                         "template_type": "button",
                         "text": "Here lies a button",
-                        "buttons": []
+                        "buttons": [
+                            {
+                                "type": "web_url",
+                                "url": "http://some.where/but_not_here",
+                                "title": "This is a test title"
+                            },
+                            {
+                                "type": "postback",
+                                "title": "This is a test title",
+                                "payload": "This is a test payload"
+                            }
+                        ]
                     }
                 }
             }
@@ -106,5 +117,8 @@ class TestMakeButtonMessage(unittest.TestCase):
         Tests messages.make_message by checking that the returned dict matches
         self.expected, defined above.
         """
-        message = messages.make_message("1789953497899630", "button_message", {"prompt_text": "Here lies a button"})
+        buttons = []
+        buttons.append(messages.make_url_button("This is a test title", "http://some.where/but_not_here"))
+        buttons.append(messages.make_postback_button("This is a test title", "This is a test payload"))
+        message = messages.make_message("1789953497899630", "button_message", {"prompt_text": "Here lies a button"}, buttons)
         self.assertEqual(message, self.expected)
