@@ -8,7 +8,6 @@ from validation import validate_message
 
 
 logger = logging.getLogger()
-logger.setLevel(eval("logging.{}".format(settings["logLevel"])))
 
 
 templates_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/")

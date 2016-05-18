@@ -1,3 +1,4 @@
+from config import settings
 import json
 import logging
 import os
@@ -19,10 +20,12 @@ from platform import messages, profiles
 """
 Adds a console logger to be used during test runs.
 """
+log_level = eval("logging.{}".format(settings["logLevel"]))
 logger = logging.getLogger()
+logger.setLevel(log_level)
 if not len([handler for handler in logger.handlers if isinstance(handler,logging.StreamHandler)]):
     sh = logging.StreamHandler()
-    sh.setLevel(eval("logging.{}".format(settings["logLevel"])))
+    sh.setLevel(log_level)
     logger.addHandler(sh)
 
 
