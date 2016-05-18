@@ -8,21 +8,11 @@ from validation import validate_message
 
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(eval("logging.{}".format(settings["logLevel"])))
 
 
 templates_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/")
 
-
-"""
-Title: 45 characters
-Subtitle: 80 characters
-Call-to-action title: 20 characters
-Call-to-action items: 3 buttons
-Bubbles per message (horizontal scroll): 10 elements
-
-Image ratio is 1.91:1
-"""
 
 def send_message(message):
     """

@@ -11,7 +11,7 @@ Set up the logger.
 TBD: Should move the level to a stage variable.
 """
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(eval("logging.{}".format(settings["logLevel"])))
 
 
 """

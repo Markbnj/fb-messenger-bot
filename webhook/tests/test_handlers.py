@@ -23,7 +23,7 @@ Adds a console handler to the logger to be used during test runs.
 logger = logging.getLogger()
 if not len([handler for handler in logger.handlers if isinstance(handler,logging.StreamHandler)]):
     sh = logging.StreamHandler()
-    sh.setLevel(logging.DEBUG)
+    sh.setLevel(eval("logging.{}".format(settings["logLevel"])))
     logger.addHandler(sh)
 
 
