@@ -14,7 +14,7 @@ parent = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, parent)
 
 
-from platform import messages, profiles
+from platform import messages, profiles, validation
 
 
 """
@@ -184,3 +184,55 @@ class TestMakeGenericMessage(unittest.TestCase):
             "http://some.where/but_not_here",
             buttons)
         self.assertEqual(message, self.expected)
+
+
+class TestValidationNoRecipient(unittest.TestCase):
+    pass
+
+
+class TestValidationEmptyRecipient(unittest.TestCase):
+    pass
+
+
+class TestValidationEmptyRecipientId(unittest.TestCase):
+    pass
+
+
+class TestValidationEmptyRecipientPhone(unittest.TestCase):
+    pass
+
+
+class TestValidationTextMessage(unittest.TestCase):
+    pass
+
+
+class TestValidationTextMessageMissingText(unittest.TestCase):
+    pass
+
+
+class TestValidationButtonMessage(unittest.TestCase):
+    pass
+
+
+class TestValidationButtonMessageMissingTitle(unittest.TestCase):
+    pass
+
+
+class TestValidationButtonMessageBadButtonType(unittest.TestCase):
+    pass
+
+
+class TestValidationButtonMessageMissingButtonTitle(unittest.TestCase):
+    pass
+
+
+class TestValidationButtonMessageMissingButtonUrl(unittest.TestCase):
+    pass
+
+
+class TestValidationButtonMessageMissingButtonPayload(unittest.TestCase):
+    pass
+
+
+class TestValidationGenericMessage(unittest.TestCase):
+    pass
