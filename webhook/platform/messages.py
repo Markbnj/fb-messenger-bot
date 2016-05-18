@@ -31,8 +31,7 @@ def send_message(message):
     if response.status_code == 200:
         return json.loads(response.text)
     else:
-        logger.error("Send message call failed: {}".format(response.text))
-        raise Exception("500 Internal Server Error; graph API call failed with status: {}".format(response.status_code))
+        raise Exception("FB graph API call failed; status: {}; data: {}".format(response.status_code, response.text))
 
 
 def _render(template, data):
@@ -75,19 +74,14 @@ def make_message(recipient_id, template_name, data=None, buttons=None):
         template_file = os.path.join(templates_dir, "{}.json".format(template_name))
     else:
         template_file = os.path.join(templates_dir, template_name)
-    try:
-        with open(template_file, "rb") as f:
-            template = json.loads(f.read())
-        template["recipient"]["id"] = recipient_id
-        if data:
-            template = _render(template, data)
-        if buttons:
-            template["message"]["attachment"]["payload"]["buttons"].extend(buttons)
-    except Exception as e:
-        logger.error("Failed to render template: {}; error: {}".format(template_name, e))
-        raise Exception("500 Internal Server Error; failed to render template")
-    else:
-        return template
+    with open(template_file, "rb") as f:
+        template = json.loads(f.read())
+    template["recipient"]["id"] = recipient_id
+    if data:
+        template = _render(template, data)
+    if buttons:
+        template["message"]["attachment"]["payload"]["buttons"].extend(buttons)
+    return template
 
 
 def add_message_element(message, title, subtitle="", image_url="", item_url="", buttons=None):
