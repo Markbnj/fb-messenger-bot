@@ -73,7 +73,7 @@ def _validate_button(button, base_property_path):
             _raise_empty_value("{}.payload".format(base_property_path))
 
     else:
-        _raise_bad_value("{}.type", "must contain either 'web_url' or 'postback'")
+        _raise_bad_value("{}.type".format(base_property_path), "must contain either 'web_url' or 'postback'")
 
 
 def _validate_element(element, base_property_path):
@@ -142,7 +142,7 @@ def _validate_template(template, base_property_path):
             logger.warn("tmeplate element count of {} exceeds the recommended maximum of {}".format(
                 len(template["elements"]), _elements_warn_count))
 
-        for element in elements:
+        for element in template["elements"]:
             _validate_element(element, "{}.elements[]".format(base_property_path))
 
     else:
@@ -172,7 +172,7 @@ def _validate_attachment(attachment, base_property_path):
         if not attachment["payload"]["url"]:
             _raise_empty_value("{}.payload.url".format(base_property_path))
 
-    elif attachment["type"] == "template"
+    elif attachment["type"] == "template":
         _validate_template(attachment["payload"], "{}.payload".format(base_property_path))
 
     else:

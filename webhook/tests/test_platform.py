@@ -1,4 +1,3 @@
-from config import settings
 import json
 import logging
 import os
@@ -13,6 +12,11 @@ platform modules.
 parent = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, parent)
 
+
+from config import settings
+
+# just importing this to set up the library paths
+import webhook
 
 from platform import messages, profiles, validation
 
@@ -186,53 +190,641 @@ class TestMakeGenericMessage(unittest.TestCase):
         self.assertEqual(message, self.expected)
 
 
-class TestValidationNoRecipient(unittest.TestCase):
-    pass
+class TestValidationBase(unittest.TestCase):
+    def assertRaisesWithMsg(self, exc_type, test_func, content, *args, **kwargs):
+        """
+        Calls the callable in test_func, passing args and kwargs, and raises
+        assertion error if the called function does not raise an exception of
+        type exc_type. If content is not none or empty then it raises an assertion
+        error if the raised exception doesn't contain content in its message.
+        """
+        try:
+            test_func(*args, **kwargs)
+        except exc_type as e:
+            logger.debug("{} raised: {}".format(test_func, e))
+            if content and not content in str(e):
+                raise AssertionError("'{}' not found in '{}'".format(content, e))
+        except Exception as e:
+            logger.debug("Unexpected: {}".format(e))
+        else:
+            raise AssertionError("{} did not raise an exception of type {}".format(test_func, exc_type))
 
 
-class TestValidationEmptyRecipient(unittest.TestCase):
-    pass
+class TestValidationTextMessage(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "text": "This is a basic test message."
+            }
+        }
+        """)
+
+    def test(self):
+        validation.validate_message(self.test_msg)
 
 
-class TestValidationEmptyRecipientId(unittest.TestCase):
-    pass
+class TestValidationTextMessageWithPhone(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "phone_number": "9085551212"
+            },
+            "message": {
+                "text": "This is a basic test message."
+            }
+        }
+        """)
+
+    def test(self):
+        validation.validate_message(self.test_msg)
 
 
-class TestValidationEmptyRecipientPhone(unittest.TestCase):
-    pass
+class TestValidationNoRecipient(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "message": {
+                "text": "This is a basic test message."
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "missing property: $.recipient",
+            self.test_msg)
 
 
-class TestValidationTextMessage(unittest.TestCase):
-    pass
+class TestValidationEmptyRecipient(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+            },
+            "message": {
+                "text": "This is a basic test message."
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "$.message.recipient must contain either 'id' or 'phone_number'",
+            self.test_msg)
 
 
-class TestValidationTextMessageMissingText(unittest.TestCase):
-    pass
+class TestValidationEmptyRecipientId(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": ""
+            },
+            "message": {
+                "text": "This is a basic test message."
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "$.recipient.id cannot be 'None' or empty",
+            self.test_msg)
 
 
-class TestValidationButtonMessage(unittest.TestCase):
-    pass
+class TestValidationEmptyRecipientPhone(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "phone_number": ""
+            },
+            "message": {
+                "text": "This is a basic test message."
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "$.recipient.phone_number cannot be 'None' or empty",
+            self.test_msg)
 
 
-class TestValidationButtonMessageMissingTitle(unittest.TestCase):
-    pass
+class TestValidationTextMessageEmptyMessage(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "$.message cannot be 'None' or empty",
+            self.test_msg)
 
 
-class TestValidationButtonMessageBadButtonType(unittest.TestCase):
-    pass
+class TestValidationTextMessageEmptyText(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "text":""
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "$.message.text cannot be 'None' or empty",
+            self.test_msg)
 
 
-class TestValidationButtonMessageMissingButtonTitle(unittest.TestCase):
-    pass
+class TestValidationButtonMessage(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "button",
+                        "text": "Here lies a button",
+                        "buttons": [
+                            {
+                                "type": "web_url",
+                                "url": "http://some.where/but_not_here",
+                                "title": "This is a test title"
+                            },
+                            {
+                                "type": "postback",
+                                "title": "This is a test title",
+                                "payload": "This is a test payload"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        validation.validate_message(self.test_msg)
 
 
-class TestValidationButtonMessageMissingButtonUrl(unittest.TestCase):
-    pass
+class TestValidationButtonMessageMissingTitle(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "button",
+                        "buttons": [
+                            {
+                                "type": "web_url",
+                                "url": "http://some.where/but_not_here",
+                                "title": "This is a test title"
+                            },
+                            {
+                                "type": "postback",
+                                "title": "This is a test title",
+                                "payload": "This is a test payload"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "missing property: $.message.attachment.payload.text",
+            self.test_msg)
 
 
-class TestValidationButtonMessageMissingButtonPayload(unittest.TestCase):
-    pass
+class TestValidationButtonMessageMissingButtonType(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "button",
+                        "text": "Here lies a button",
+                        "buttons": [
+                            {
+                                "url": "http://some.where/but_not_here",
+                                "title": "This is a test title"
+                            },
+                            {
+                                "type": "postback",
+                                "title": "This is a test title",
+                                "payload": "This is a test payload"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "missing property: $.message.attachment.payload.button[].type",
+            self.test_msg)
 
 
-class TestValidationGenericMessage(unittest.TestCase):
-    pass
+class TestValidationButtonMessageEmptyButtonType(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "button",
+                        "text": "Here lies a button",
+                        "buttons": [
+                            {
+                                "type": "",
+                                "url": "http://some.where/but_not_here",
+                                "title": "This is a test title"
+                            },
+                            {
+                                "type": "postback",
+                                "title": "This is a test title",
+                                "payload": "This is a test payload"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "$.message.attachment.payload.button[].type must contain either 'web_url' or 'postback'",
+            self.test_msg)
+
+
+class TestValidationButtonMessageMissingButtonTitle(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "button",
+                        "text": "Here lies a button",
+                        "buttons": [
+                            {
+                                "type": "web_url",
+                                "url": "http://some.where/but_not_here"
+                            },
+                            {
+                                "type": "postback",
+                                "title": "This is a test title",
+                                "payload": "This is a test payload"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "missing property: $.message.attachment.payload.button[].title",
+            self.test_msg)
+
+
+class TestValidationButtonMessageEmptyButtonTitle(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "button",
+                        "text": "Here lies a button",
+                        "buttons": [
+                            {
+                                "type": "web_url",
+                                "url": "http://some.where/but_not_here",
+                                "title": ""
+                            },
+                            {
+                                "type": "postback",
+                                "title": "This is a test title",
+                                "payload": "This is a test payload"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "$.message.attachment.payload.button[].title cannot be 'None' or empty",
+            self.test_msg)
+
+
+class TestValidationButtonMessageMissingButtonUrl(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "button",
+                        "text": "Here lies a button",
+                        "buttons": [
+                            {
+                                "type": "web_url",
+                                "title": "This is a test title"
+                            },
+                            {
+                                "type": "postback",
+                                "title": "This is a test title",
+                                "payload": "This is a test payload"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "missing property: $.message.attachment.payload.button[].url",
+            self.test_msg)
+
+
+class TestValidationButtonMessageEmptyButtonUrl(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "button",
+                        "text": "Here lies a button",
+                        "buttons": [
+                            {
+                                "type": "web_url",
+                                "url": "",
+                                "title": "This is a test title"
+                            },
+                            {
+                                "type": "postback",
+                                "title": "This is a test title",
+                                "payload": "This is a test payload"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "$.message.attachment.payload.button[].url cannot be 'None' or empty",
+            self.test_msg)
+
+
+class TestValidationButtonMessageMissingButtonPayload(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "button",
+                        "text": "Here lies a button",
+                        "buttons": [
+                            {
+                                "type": "web_url",
+                                "url": "http://some.where/but_not_here",
+                                "title": "This is a test title"
+                            },
+                            {
+                                "type": "postback",
+                                "title": "This is a test title"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "missing property: $.message.attachment.payload.button[].payload",
+            self.test_msg)
+
+
+class TestValidationButtonMessageEmptyButtonPayload(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "button",
+                        "text": "Here lies a button",
+                        "buttons": [
+                            {
+                                "type": "web_url",
+                                "url": "http://some.where/but_not_here",
+                                "title": "This is a test title"
+                            },
+                            {
+                                "type": "postback",
+                                "title": "This is a test title",
+                                "payload": ""
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "$.message.attachment.payload.button[].payload cannot be 'None' or empty",
+            self.test_msg)
+
+
+class TestValidationGenericMessage(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "generic",
+                        "elements": [
+                            {
+                                "title": "This is a test title",
+                                "image_url": "http://some.where/but_not_here.png",
+                                "item_url": "http://some.where/but_not_here",
+                                "subtitle": "This is a test subtitle",
+                                "buttons": [
+                                    {
+                                        "type": "web_url",
+                                        "url": "http://some.where/but_not_here",
+                                        "title": "This is a test title"
+                                    },
+                                    {
+                                        "type": "postback",
+                                        "title": "This is a test title",
+                                        "payload": "This is a test payload"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        validation.validate_message(self.test_msg)
+
+
+if __name__ == "__main__":
+    unittest.main()
