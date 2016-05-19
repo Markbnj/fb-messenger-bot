@@ -137,6 +137,9 @@ def _validate_template(template, base_property_path):
         if not "elements" in template:
             _raise_missing_property("{}.elements".format(base_property_path))
 
+        if not template["elements"]:
+            _raise_empty_value("{}.elements".format(base_property_path))
+
         if len(template["elements"]) > _elements_warn_count:
             logger.warn("tmeplate element count of {} exceeds the recommended maximum of {}".format(
                 len(template["elements"]), _elements_warn_count))

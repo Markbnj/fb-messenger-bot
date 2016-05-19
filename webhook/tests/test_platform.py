@@ -826,5 +826,157 @@ class TestValidationGenericMessage(TestValidationBase):
         validation.validate_message(self.test_msg)
 
 
+class TestValidationGenericMessageMissingElements(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "generic"
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "missing property: $.message.attachment.payload.elements",
+            self.test_msg)
+
+
+class TestValidationGenericMessageEmptyElements(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "generic",
+                        "elements": []
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "$.message.attachment.payload.elements cannot be 'None' or empty",
+            self.test_msg)
+
+
+class TestValidationGenericMessageMissingElementTitle(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "generic",
+                        "elements": [
+                            {
+                                "image_url": "http://some.where/but_not_here.png",
+                                "item_url": "http://some.where/but_not_here",
+                                "subtitle": "This is a test subtitle",
+                                "buttons": [
+                                    {
+                                        "type": "web_url",
+                                        "url": "http://some.where/but_not_here",
+                                        "title": "This is a test title"
+                                    },
+                                    {
+                                        "type": "postback",
+                                        "title": "This is a test title",
+                                        "payload": "This is a test payload"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "missing property: $.message.attachment.payload.elements[].title",
+            self.test_msg)
+
+
+class TestValidationGenericMessageEmptyElementTitle(TestValidationBase):
+    def setUp(self):
+        logger.info("\n\n>>>>TEST CASE: {}".format(self.id()))
+
+        self.test_msg = json.loads("""
+        {
+            "recipient": {
+                "id": "1789953497899630"
+            },
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "generic",
+                        "elements": [
+                            {
+                                "title": "",
+                                "image_url": "http://some.where/but_not_here.png",
+                                "item_url": "http://some.where/but_not_here",
+                                "subtitle": "This is a test subtitle",
+                                "buttons": [
+                                    {
+                                        "type": "web_url",
+                                        "url": "http://some.where/but_not_here",
+                                        "title": "This is a test title"
+                                    },
+                                    {
+                                        "type": "postback",
+                                        "title": "This is a test title",
+                                        "payload": "This is a test payload"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """)
+
+    def test(self):
+        self.assertRaisesWithMsg(
+            Exception,
+            validation.validate_message,
+            "$.message.attachment.payload.elements[].title cannot be 'None' or empty",
+            self.test_msg)
+
+
 if __name__ == "__main__":
     unittest.main()
