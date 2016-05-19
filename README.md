@@ -1,4 +1,4 @@
-# lambda-messenger-bot
+# fb-messenger-bot
 
 ### A project for easy dev/deployment of an FB messenger bot running on AWS lambda and using API Gateway as an entrypoint.
 
