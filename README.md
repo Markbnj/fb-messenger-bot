@@ -4,8 +4,6 @@
 
 #### Roadmap
 
-  - Add 500 mapping to the API gateway responses
-  - Create interfaces to send simple and structured messages
   - Implement interface to DynamoDB or another store for sessions
   - Implement interface to wit.ai at pluggable abstraction level
   - Create swagger definition of API gateway setup
