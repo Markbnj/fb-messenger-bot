@@ -1,4 +1,5 @@
 {
+    "logLevel": "DEBUG",
     "accessToken": "ACCESS TOKEN HERE",
     "verifyToken": "VERIFY TOKEN HERE",
     "pageToken": "FACEBOOK PAGE TOKEN HERE",
