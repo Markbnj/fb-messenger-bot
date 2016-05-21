@@ -1,6 +1,5 @@
 from config import settings
 import logging
-from platform import profiles
 
 
 logger = logging.getLogger()
