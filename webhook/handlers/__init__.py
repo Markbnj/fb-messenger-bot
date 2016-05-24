@@ -13,7 +13,6 @@ def postback_received(page_id, time, data):
         page_id: the page id, corresponds to $.entry[i].id in the callback data
         time: the update time, corresponds to $.entry[i].time in the callback data
         data: the postback content, $.entry[i].messaging[i] in the callback data
-        settings: contains the page token in "pageToken"
     """
     logger.debug("Postback recv: page_id: {}, time: {}, data: {}".format(page_id, time, data))
 
@@ -25,7 +24,6 @@ def auth_received(page_id, time, data):
         page_id: the page id, corresponds to $.entry[i].id in the callback data
         time: the update time, corresponds to $.entry[i].time in the callback data
         data: the auth content, $.entry[i].messaging[i] in the callback data
-        settings: contains the page token in "pageToken"
     """
     logger.debug("Auth recv: page_id: {}, time: {}, data: {}".format(page_id, time, data))
 
@@ -37,7 +35,6 @@ def message_received(page_id, time, envelope):
         page_id: the page id, corresponds to $.entry[i].id in the callback data
         time: the update time, corresponds to $.entry[i].time in the callback data
         envelope: the message content container, $.entry[i].messaging[i] in the callback data
-        settings: contains the page token in "pageToken"
     """
     logger.debug("Message recv: page_id: {}, time: {}, envelope: {}".format(page_id, time, envelope))
 
@@ -49,7 +46,6 @@ def message_delivered(page_id, time, receipt):
         page_id: the page id, corresponds to $.entry[i].id in the callback data
         time: the update time, corresponds to $.entry[i].time in the callback data
         receipt: the delivery receipt, $.entry[i].messaging[i] in the callback data
-        settings: contains the page token in "pageToken"
     """
     logger.debug("Message delivered: page_id: {}, time: {}, receipt: {}".format(page_id, time, receipt))
 
