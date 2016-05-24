@@ -1,6 +1,9 @@
 import logging
 
 
+logger = logging.getLogger()
+
+
 def ping():
     """
     Called from the dialog module to ensure that the bot is loaded and callable
@@ -68,7 +71,7 @@ def message_in(source, sender_id, time, message):
         source, sender_id, time, message))
 
 
-def message_seen(source, message_id, message_seq, watermark, time):
+def message_seen(source, message_ids, message_seq, watermark, time):
     """
     Called when the delivery platform confirms delivery of a message. In the case
     of messenger this corresponds to the message having been displayed on the
@@ -76,11 +79,11 @@ def message_seen(source, message_id, message_seq, watermark, time):
 
     Params:
         source: name of the source application, for messenger it is the page ID
-        message_id : the unique ID of the delivered message
+        message_ids : list of the unique IDs of the delivered messages
         message_seq : the message sequence number
         watermark: high water value, all messages with earlier values have been seen
         time: the time of the event
 
     """
-    logger.debug("test_bot.message_seen: source: {}, message_id: {}, message_seq: {}, watermark: {}, time: {}".format(
-        source, message_id, message_seq, watermark, time))
+    logger.debug("test_bot.message_seen: source: {}, message_ids: {}, message_seq: {}, watermark: {}, time: {}".format(
+        source, message_ids, message_seq, watermark, time))

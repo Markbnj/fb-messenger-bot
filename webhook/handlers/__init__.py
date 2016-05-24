@@ -16,6 +16,7 @@ def postback_received(page_id, time, data):
         data: the postback content, $.entry[i].messaging[i] in the callback data
     """
     logger.debug("Postback recv: page_id: {}, time: {}, data: {}".format(page_id, time, data))
+    dialog.user_selected(page_id, data["sender"]["id"], time, data["postback"]["payload"])
 
 
 def auth_received(page_id, time, data):
@@ -27,6 +28,7 @@ def auth_received(page_id, time, data):
         data: the auth content, $.entry[i].messaging[i] in the callback data
     """
     logger.debug("Auth recv: page_id: {}, time: {}, data: {}".format(page_id, time, data))
+    dialog.open(page_id, data["sender"]["id"], time, data["optin"]["ref"])
 
 
 def message_received(page_id, time, envelope):
@@ -38,6 +40,20 @@ def message_received(page_id, time, envelope):
         envelope: the message content container, $.entry[i].messaging[i] in the callback data
     """
     logger.debug("Message recv: page_id: {}, time: {}, envelope: {}".format(page_id, time, envelope))
+    message = {
+        "id": envelope["message"]["mid"],
+        "seq": envelope["message"]["seq"],
+        "text": envelope["message"].get("text"),
+        "attachments": []
+    }
+    attachments = envelope["message"].get("attachments")
+    if attachments:
+        for attachment in attachments:
+            message["attachments"].append({
+                "type": attachment["type"],
+                "url": attachment["payload"]["url"]
+            })
+    dialog.message_in(page_id, envelope["sender"]["id"], time, message)
 
 
 def message_delivered(page_id, time, receipt):
@@ -49,6 +65,7 @@ def message_delivered(page_id, time, receipt):
         receipt: the delivery receipt, $.entry[i].messaging[i] in the callback data
     """
     logger.debug("Message delivered: page_id: {}, time: {}, receipt: {}".format(page_id, time, receipt))
+    dialog.message_seen(page_id, receipt["delivery"]["mids"], receipt["delivery"]["seq"], receipt["delivery"]["watermark"], time)
 
 
 def dispatch_postback(body):
