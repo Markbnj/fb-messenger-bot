@@ -1,4 +1,5 @@
 from config import settings
+import dialog
 import logging
 from validation import validate_postback
 
