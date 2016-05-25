@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger()
 
 
-active_bot = "dialog.bots.{}".format(settings["activeBot"], fromlist=["*"])
+active_bot = "dialog.bots.{}".format(settings["activeBot"])
 try:
     bot = importlib.import_module(active_bot)
     bot.ping()
